@@ -4,7 +4,9 @@ import { ScenarioComparisonEngine } from '../features/simulation/engine/comparis
 import { DEFAULT_CLIENT_SCENARIOS } from './defaultScenarios';
 import { getLocalProjects, saveLocalProject, removeLocalProject } from './storage';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+// Clean base URL without trailing slash
+const rawBase = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE = rawBase.replace(/\/+$/, '');
 
 export const apiClient = {
   /**
@@ -24,7 +26,7 @@ export const apiClient = {
         }
       }
     } catch (e) {
-      console.info('Backend API unavailable, using client-side scenario repository.');
+      console.info('Backend API unreachable or cold start, using client-side scenario repository.');
     }
 
     // Client fallback
@@ -79,7 +81,7 @@ export const apiClient = {
         }
       }
     } catch (e: any) {
-      if (e.message && e.message.includes('Signal timing infeasible')) {
+      if (e.message && (e.message.includes('Signal timing infeasible') || e.message.includes('Infeasible'))) {
         throw e;
       }
       console.info('Running simulation via client engine...');
